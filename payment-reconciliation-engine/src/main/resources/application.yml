@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: payment-reconciliation-engine
+
+  # Default profile runs on in-memory H2 so the project runs with zero setup.
+  # Swap to the 'postgres' profile below for a real Postgres instance.
+  datasource:
+    url: jdbc:h2:mem:reconciliation;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: reconciliation-engine
+      auto-offset-reset: earliest
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.nithin.reconciliation.dto"
+
+server:
+  port: 8080
+
+---
+spring:
+  config:
+    activate:
+      on-profile: postgres
+  datasource:
+    url: jdbc:postgresql://localhost:5432/reconciliation_db
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
